@@ -1,0 +1,49 @@
+name: Construire l'APK
+
+on:
+  push:
+    branches: [main]
+    paths: ["www/**", "android/**", "capacitor.config.json", "package.json", "package-lock.json", ".github/workflows/build-apk.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+      - run: npx cap sync android
+      - name: Réglages de l'appli
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          EVENTS_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/data/events.json"
+          sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|; s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|; s|__EVENTS_URL__|${EVENTS_URL}|" www/config.js
+          if grep -q "__" www/config.js; then echo "Il manque le secret SUPABASE_URL ou SUPABASE_ANON_KEY"; exit 1; fi
+      - name: Compilation
+        working-directory: android
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk ../NosSorties.apk
+      - name: Publier
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.${{ github.run_number }}
+          name: Nos sorties 1.${{ github.run_number }}
+          make_latest: true
+          files: NosSorties.apk

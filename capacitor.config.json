@@ -1,0 +1,6 @@
+{
+  "appId": "fr.nossorties.app",
+  "appName": "Nos sorties",
+  "webDir": "www",
+  "android": { "allowMixedContent": false }
+}

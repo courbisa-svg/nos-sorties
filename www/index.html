@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f5c86">
+<title>Nos sorties</title>
+<style>
+/* Plan : carnet de sorties de la Riviera. Bleu Méditerranée + soleil ocre ; rouge course pour l'Auto ; vert pour ce qui est prévu/fait.
+   Mise en page : en-tête compact, barre d'onglets en bas (pouce), cartes en une colonne. */
+:root{
+  --bg:#f3f6f8; --surface:#ffffff; --ink:#10222e; --muted:#5b6d78; --line:#dbe3e8;
+  --sea:#0f5c86; --sea-soft:#e2eff6; --sun:#e8a317; --sun-soft:#fdf2d8; --sun-ink:#8a5a00;
+  --race:#c8312b; --race-soft:#fbe6e4; --ok:#1f7a4d; --ok-soft:#e1f2e8;
+  --display:"Avenir Next","Segoe UI",Roboto,system-ui,sans-serif;
+  --body:Roboto,"Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0b1820; --surface:#12232e; --ink:#e8f0f4; --muted:#93a7b3; --line:#22394a;
+    --sea:#5fb3e0; --sea-soft:#163447; --sun:#f2b94a; --sun-soft:#3a2e12; --sun-ink:#f2b94a;
+    --race:#ff6a5f; --race-soft:#3d1a18; --ok:#5cc98f; --ok-soft:#14352a;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 8px) 16px calc(96px + env(safe-area-inset-bottom))}
+header{padding:12px 0 8px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:800;font-size:1.6rem;line-height:1.1;margin:0;letter-spacing:-.01em}
+h1 .dep{color:var(--sea)}
+.sub{color:var(--muted);font-size:.85rem;margin:2px 0 0}
+.icon-btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.82rem;font-weight:600;color:var(--muted)}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+.tab{border:0;background:transparent;border-radius:12px;padding:8px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.74rem;font-weight:600;color:var(--muted)}
+.tab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-selected="true"]{color:var(--sea);background:var(--sea-soft)}
+.tab[data-tab="auto"][aria-selected="true"]{color:var(--race);background:var(--race-soft)}
+.tab .n{font-variant-numeric:tabular-nums;opacity:.8}
+
+.weekends{display:flex;gap:8px;overflow-x:auto;padding:8px 2px 6px;scrollbar-width:none}
+.weekends::-webkit-scrollbar{display:none}
+.we{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 12px;text-align:left;min-width:96px;display:flex;flex-direction:column;gap:2px}
+.we .l1{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.we .l2{font-family:var(--display);font-weight:700;font-size:1.05rem;white-space:nowrap}
+.we .l3{font-size:.75rem;color:var(--muted);display:flex;gap:6px;align-items:center;font-variant-numeric:tabular-nums}
+.we .flag{width:8px;height:8px;border-radius:2px;background:var(--race);display:inline-block}
+.we[aria-pressed="true"]{border-color:var(--sea);background:var(--sea-soft);box-shadow:inset 0 0 0 1px var(--sea)}
+
+.filters{display:flex;flex-direction:column;gap:8px;padding:6px 0 4px}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.row.scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.row.scroll::-webkit-scrollbar{display:none}
+.row.scroll .chip{flex:0 0 auto}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.85rem;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.section-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:16px 0 8px}
+.section-h h2{font-family:var(--display);font-weight:800;font-size:1.2rem;margin:0}
+.section-h .meta{color:var(--muted);font-size:.82rem;white-space:nowrap}
+h3.group{font-size:.76rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:18px 0 8px;font-weight:700}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;border-left:5px solid var(--sea)}
+.card.auto{border-left-color:var(--race)}
+.card.noel{border-left-color:var(--ok)}
+.card.tente{box-shadow:0 0 0 2px var(--sun-soft)}
+.card.go{border-color:var(--ok);border-left-color:var(--ok)}
+.card.place{border-left-color:var(--sun)}
+.card.place.done{opacity:.7;border-left-color:var(--ok)}
+.top{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.when{font-size:.82rem;font-weight:700;color:var(--sea);font-variant-numeric:tabular-nums}
+.card.auto .when{color:var(--race)}
+.title{font-family:var(--display);font-weight:700;font-size:1.08rem;line-height:1.25;margin:2px 0 0}
+.where{font-size:.88rem;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.badge{font-size:.72rem;font-weight:700;border-radius:6px;padding:2px 6px;background:var(--sea-soft);color:var(--sea)}
+.badge.d83{background:var(--sun-soft);color:var(--sun-ink)}
+.badge.dmc{background:var(--race-soft);color:var(--race)}
+.badge.type{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.desc{margin:0;font-size:.93rem}
+.price{font-size:.85rem;font-weight:600}
+.heart{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;width:44px;height:44px;display:grid;place-items:center}
+.heart svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:2}
+.heart[aria-pressed="true"]{background:var(--sun-soft);border-color:var(--sun)}
+.heart[aria-pressed="true"] svg{fill:var(--sun);stroke:var(--sun)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 13px;font-size:.88rem;font-weight:600;text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:6px}
+.btn.go{border-color:var(--ok);color:var(--ok)}
+.btn.go[aria-pressed="true"]{background:var(--ok);color:#fff}
+.btn.primary{background:var(--sea);border-color:var(--sea);color:#fff}
+.btn.danger{color:var(--race);border-color:var(--race-soft)}
+.btn.link{border:0;padding:9px 4px;color:var(--sea);text-decoration:underline;text-underline-offset:3px;background:transparent}
+.btn[disabled]{opacity:.5}
+.calbox{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--ok-soft);border-radius:10px;padding:10px}
+.calbox p{margin:0;flex:1 1 100%;font-size:.82rem;color:var(--ok);font-weight:700}
+.empty,.notice{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:18px;color:var(--muted);font-size:.93rem}
+.notice.warn{border-style:solid;border-color:var(--sun);background:var(--sun-soft);color:var(--ink)}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:20;background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 14px;font-size:.9rem;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:560px;margin:0 auto}
+
+form.stack{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;font-weight:600;color:var(--muted)}
+input,select,textarea{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;font-size:1rem;color:var(--ink);width:100%}
+textarea{min-height:70px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.login{min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:16px;max-width:420px;margin:0 auto;padding:24px 16px}
+.login .logo{width:72px;height:72px;border-radius:18px;background:var(--sea);display:grid;place-items:center}
+.login .logo span{width:30px;height:30px;border-radius:50%;background:var(--sun);display:block}
+.login p{margin:0;color:var(--muted)}
+.err{color:var(--race);font-size:.88rem;font-weight:600}
+@media (prefers-reduced-motion: no-preference){.card{transition:box-shadow .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script>
+(function(){
+  "use strict";
+  var CFG=window.APP_CONFIG||{};
+  var MONTHS=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+  var MONTHS_FULL=["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+  var DAYS=["dim.","lun.","mar.","mer.","jeu.","ven.","sam."];
+  var CATS={auto:"Auto",noel:"Noël",spectacle:"Spectacle",concert:"Concert",fete:"Fête",culture:"Culture",sport:"Sport",montagne:"Montagne",brocante:"Brocante",marche:"Marché"};
+  var DEPTS={"06":"06","83":"83","MC":"Monaco","autre":"Ailleurs"};
+  var KINDS={resto:"Restaurant",plage:"Plage",rando:"Randonnée",village:"Village",visite:"Visite",activite:"Activité",autre:"Autre"};
+  var SHARED_EMAIL="aymeric.julia.c@gmail.com";
+
+  var sb=null;
+  var state={user:null,tab:"we",weekend:null,dept:"all",cat:"all",events:[],favs:{},places:[],eventsAt:null,loaded:false,error:null,placeFilter:"todo",placeForm:false,editId:null,confirmDel:null,toast:null};
+
+  try{sb=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true,storage:window.localStorage}})}catch(e){sb=null}
+
+  // ---------- dates ----------
+  function pad(n){return (n<10?"0":"")+n}
+  function parseD(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
+  function iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+  function addDays(d,n){var x=new Date(d.getTime());x.setDate(x.getDate()+n);return x}
+  function dayDiff(a,b){return Math.round((parseD(b)-parseD(a))/86400000)}
+  function fmtDay(s){var d=parseD(s);return DAYS[d.getDay()]+" "+d.getDate()+" "+MONTHS[d.getMonth()]}
+  function fmtShort(s){var d=parseD(s);return d.getDate()+" "+MONTHS[d.getMonth()]}
+  function todayIso(){return iso(new Date())}
+  function isLong(ev){return dayDiff(ev.start,ev.end||ev.start)>6}
+  function whenText(ev){
+    var e=ev.end||ev.start,t="";
+    if(ev.start===e)t=fmtDay(ev.start);
+    else if(isLong(ev))t="Jusqu'au "+fmtShort(e)+(ev.start>todayIso()?" (dès le "+fmtShort(ev.start)+")":"");
+    else t=fmtDay(ev.start)+" → "+fmtDay(e);
+    if(ev.time)t+=" · "+ev.time.replace(":","h")+(ev.endTime?"–"+ev.endTime.replace(":","h"):"");
+    return t;
+  }
+  function weekendOf(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());var dow=x.getDay();var toFri=(5-dow+7)%7;if(dow===6)toFri=-1;if(dow===0)toFri=-2;return addDays(x,toFri)}
+  function buildWeekends(){
+    var start=weekendOf(new Date()),list=[],maxEnd=todayIso();
+    state.events.forEach(function(ev){var e=ev.end||ev.start;if(!isLong(ev)&&e>maxEnd)maxEnd=e});
+    for(var i=0;i<26;i++){var f=addDays(start,7*i);if(iso(f)>maxEnd&&i>3)break;list.push({fri:iso(f),sat:iso(addDays(f,1)),sun:iso(addDays(f,2))})}
+    return list;
+  }
+  function overlaps(ev,w){return ev.start<=w.sun&&(ev.end||ev.start)>=w.fri}
+  function passFilters(ev){return (state.dept==="all"||ev.dept===state.dept)&&(state.cat==="all"||ev.category===state.cat)}
+  function upcoming(ev){return (ev.end||ev.start)>=todayIso()}
+  function sortEv(a,b){return a.start<b.start?-1:a.start>b.start?1:((a.time||"")<(b.time||"")?-1:1)}
+
+  // ---------- agenda ----------
+  function calRange(ev,ctxDay){
+    var day=ctxDay&&isLong(ev)?ctxDay:null;
+    if(ev.time){
+      var d0=day||ev.start,p=parseD(d0),hm=ev.time.split(":");
+      var b=new Date(p.getFullYear(),p.getMonth(),p.getDate(),+hm[0],+hm[1]);
+      var e;
+      if(ev.endTime){var he=ev.endTime.split(":");e=new Date(p.getFullYear(),p.getMonth(),p.getDate(),+he[0],+he[1])}
+      else e=new Date(b.getTime()+2*3600000);
+      return {allDay:false,begin:b.getTime(),end:e.getTime(),s:d0,e:d0};
+    }
+    var s=day||ev.start,en=day||ev.end||ev.start;
+    var ps=parseD(s),pe=addDays(parseD(en),1);
+    return {allDay:true,begin:Date.UTC(ps.getFullYear(),ps.getMonth(),ps.getDate()),end:Date.UTC(pe.getFullYear(),pe.getMonth(),pe.getDate()),s:s,e:en};
+  }
+  function googleUrl(ev,ctxDay){
+    var r=calRange(ev,ctxDay),dates;
+    function g(ms){var d=new Date(ms);return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"T"+pad(d.getHours())+pad(d.getMinutes())+"00"}
+    if(r.allDay)dates=r.s.replace(/-/g,"")+"/"+iso(addDays(parseD(r.e),1)).replace(/-/g,"");
+    else dates=g(r.begin)+"/"+g(r.end);
+    return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(ev.title)+"&dates="+dates+"&ctz=Europe/Paris&details="+encodeURIComponent((ev.desc||"")+(ev.url?"\n\n"+ev.url:""))+"&location="+encodeURIComponent(ev.address||ev.city||"");
+  }
+  var Agenda=null;
+  try{if(window.Capacitor&&window.Capacitor.registerPlugin&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())Agenda=window.Capacitor.registerPlugin("Agenda")}catch(e){Agenda=null}
+  function addToAgenda(ev,ctxDay){
+    if(!Agenda){openExternal(googleUrl(ev,ctxDay));return}
+    var r=calRange(ev,ctxDay);
+    Agenda.add({title:ev.title,location:ev.address||ev.city||"",description:(ev.desc||"")+(ev.url?"\n"+ev.url:""),begin:r.begin,end:r.end,allDay:r.allDay})
+      .catch(function(){openExternal(googleUrl(ev,ctxDay))});
+  }
+  function openExternal(url){var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()}
+
+  // ---------- DOM helpers ----------
+  function el(tag,attrs,children){
+    var n=document.createElement(tag);
+    if(attrs)for(var k in attrs){var v=attrs[k];if(v===null||v===undefined||v===false)continue;
+      if(k==="class")n.className=v;else if(k==="text")n.textContent=v;else if(k.slice(0,2)==="on")n.addEventListener(k.slice(2),v);else n.setAttribute(k,v===true?"":v)}
+    (children||[]).forEach(function(c){if(c)n.appendChild(typeof c==="string"?document.createTextNode(c):c)});
+    return n;
+  }
+  var ICONS={
+    heart:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.3 3.2 4.5 7 4.5c2.1 0 3.5 1.1 5 3 1.5-1.9 2.9-3 5-3 3.8 0 6 3.8 4.5 7.3C19.5 16.4 12 21 12 21z"/></svg>',
+    cal:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+    flag:'<svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>',
+    star:'<svg viewBox="0 0 24 24"><path d="M12 20.5s-7-4.3-9-8.6C1.6 8.6 3.7 5 7.3 5c2 0 3.3 1 4.7 2.8C13.4 6 14.7 5 16.7 5c3.6 0 5.7 3.6 4.3 6.9-2 4.3-9 8.6-9 8.6z"/></svg>',
+    pin:'<svg viewBox="0 0 24 24"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>'
+  };
+  function toast(msg){state.toast=msg;render();setTimeout(function(){if(state.toast===msg){state.toast=null;render()}},3500)}
+
+  // ---------- data ----------
+  function loadEvents(){
+    try{var c=JSON.parse(localStorage.getItem("events_cache")||"null");if(c&&c.events){state.events=c.events;state.eventsAt=c.updatedAt;state.loaded=true}}catch(e){}
+    if(!CFG.EVENTS_URL||CFG.EVENTS_URL.indexOf("__")===0){state.loaded=true;state.error="Adresse des événements non configurée.";render();return}
+    fetch(CFG.EVENTS_URL+(CFG.EVENTS_URL.indexOf("?")<0?"?":"&")+"t="+Date.now(),{cache:"no-store"})
+      .then(function(r){if(!r.ok)throw new Error("http "+r.status);return r.json()})
+      .then(function(j){state.events=(j.events||[]).filter(function(e){return e.id&&e.title&&e.start});state.eventsAt=j.updatedAt||null;state.loaded=true;
+        try{localStorage.setItem("events_cache",JSON.stringify({events:state.events,updatedAt:state.eventsAt}))}catch(e){}
+        render()})
+      .catch(function(){state.loaded=true;if(!state.events.length)state.error="Impossible de charger les événements. Vérifiez la connexion internet.";render()});
+  }
+  function loadShared(){
+    sb.from("favs").select("*").then(function(r){if(r.error){state.error="Lecture des favoris impossible : "+r.error.message;render();return}var m={};(r.data||[]).forEach(function(f){m[f.event_id]=f});state.favs=m;render()});
+    sb.from("places").select("*").order("created_at",{ascending:false}).then(function(r){if(!r.error){state.places=r.data||[];render()}});
+    sb.channel("partage")
+      .on("postgres_changes",{event:"*",schema:"public",table:"favs"},function(p){
+        if(p.eventType==="DELETE"){delete state.favs[p.old.event_id]}else{state.favs[p.new.event_id]=p.new}render()})
+      .on("postgres_changes",{event:"*",schema:"public",table:"places"},function(p){
+        if(p.eventType==="DELETE"){state.places=state.places.filter(function(x){return x.id!==p.old.id})}
+        else{var i=-1;state.places.forEach(function(x,k){if(x.id===p.new.id)i=k});if(i<0)state.places.unshift(p.new);else state.places[i]=p.new}
+        render()})
+      .subscribe();
+  }
+
+  function fav(id){return state.favs[id]||{}}
+  function setFav(id,patch){
+    var cur=fav(id),next={event_id:id,tente:!!cur.tente,go:!!cur.go,updated_at:new Date().toISOString()};
+    for(var k in patch)next[k]=patch[k];
+    if(next.go)next.tente=true;
+    var prev=state.favs[id];
+    state.favs[id]=next;render();
+    var q=(next.tente||next.go)?sb.from("favs").upsert(next):sb.from("favs").delete().eq("event_id",id);
+    q.then(function(r){if(r.error){if(prev)state.favs[id]=prev;else delete state.favs[id];toast("Pas enregistré : "+r.error.message)}else if(patch.go===true){toast("C'est noté, vous y allez ! Ajoutez-le à l'agenda juste en dessous.")}render()});
+  }
+
+  // ---------- cards ----------
+  function card(ev,ctxDay){
+    var f=fav(ev.id);
+    var cls="card"+(ev.category==="auto"?" auto":"")+(ev.category==="noel"?" noel":"")+(f.tente?" tente":"")+(f.go?" go":"");
+    var heart=el("button",{class:"heart","aria-pressed":f.tente?"true":"false","aria-label":f.tente?"Retirer de nos envies":"Ça nous tente",onclick:function(){setFav(ev.id,{tente:!f.tente,go:f.tente?false:!!f.go})}});
+    heart.innerHTML=ICONS.heart;
+    var kids=[
+      el("div",{class:"top"},[el("div",{},[el("div",{class:"when",text:whenText(ev)}),el("div",{class:"title",text:ev.title})]),heart]),
+      el("div",{class:"where"},[
+        el("span",{class:"badge"+(ev.dept==="83"?" d83":ev.dept==="MC"?" dmc":""),text:DEPTS[ev.dept]||ev.dept}),
+        el("span",{class:"badge type",text:ev.autoType||CATS[ev.category]||ev.category}),
+        el("span",{text:ev.city||""})])
+    ];
+    if(ev.desc)kids.push(el("p",{class:"desc",text:ev.desc}));
+    if(ev.price)kids.push(el("div",{class:"price",text:ev.price}));
+    kids.push(el("div",{class:"actions"},[
+      el("button",{class:"btn go","aria-pressed":f.go?"true":"false",onclick:function(){setFav(ev.id,{go:!f.go})},text:f.go?"✓ On y va":"On y va"}),
+      ev.url?el("a",{class:"btn link",href:ev.url,target:"_blank",rel:"noopener",text:"Site de l'événement"}):null
+    ]));
+    if(f.go){
+      var day=ctxDay||null;
+      var b=el("button",{class:"btn primary",onclick:function(){addToAgenda(ev,day)}});b.innerHTML=ICONS.cal.replace("<svg","<svg width=\"18\" height=\"18\" style=\"fill:none;stroke:currentColor;stroke-width:2\"");b.appendChild(document.createTextNode(" Ajouter à l'agenda"));
+      kids.push(el("div",{class:"calbox"},[el("p",{text:isLong(ev)&&!ev.time&&day?"Pour le "+fmtDay(day)+" :":"Vous y allez :"}),b]));
+    }
+    return el("article",{class:cls},kids);
+  }
+  function chipRow(options,current,onPick,scroll){
+    var row=el("div",{class:"row"+(scroll?" scroll":"")});
+    options.forEach(function(o){row.appendChild(el("button",{class:"chip","aria-pressed":o[0]===current?"true":"false",text:o[1],onclick:function(){onPick(o[0])}}))});
+    return row;
+  }
+
+  // ---------- views ----------
+  function viewWeekends(root){
+    var wks=buildWeekends();
+    if(!state.weekend||!wks.some(function(w){return w.fri===state.weekend}))state.weekend=wks[0].fri;
+    var strip=el("div",{class:"weekends",role:"group","aria-label":"Choisir un week-end"});
+    wks.forEach(function(w,i){
+      var n=state.events.filter(function(ev){return overlaps(ev,w)&&!isLong(ev)&&passFilters(ev)}).length;
+      var hasAuto=state.events.some(function(ev){return ev.category==="auto"&&overlaps(ev,w)});
+      strip.appendChild(el("button",{class:"we","aria-pressed":w.fri===state.weekend?"true":"false",onclick:function(){state.weekend=w.fri;render()}},[
+        el("span",{class:"l1",text:i===0?"Ce week-end":i===1?"Le suivant":"Week-end"}),
+        el("span",{class:"l2",text:parseD(w.sat).getDate()+"–"+fmtShort(w.sun)}),
+        el("span",{class:"l3"},[n+" sortie"+(n>1?"s":""),hasAuto?el("span",{class:"flag",title:"Événement auto"}):null])]));
+    });
+    root.appendChild(strip);
+    root.appendChild(el("div",{class:"filters"},[
+      chipRow([["all","06 + 83"],["06","06"],["83","83"],["MC","Monaco"]],state.dept,function(v){state.dept=v;render()}),
+      chipRow([["all","Tout"]].concat(Object.keys(CATS).filter(function(k){return state.events.some(function(e){return e.category===k})}).map(function(k){return [k,CATS[k]]})),state.cat,function(v){state.cat=v;render()},true)
+    ]));
+    var w=wks.filter(function(x){return x.fri===state.weekend})[0];
+    var evs=state.events.filter(function(ev){return overlaps(ev,w)&&passFilters(ev)});
+    var short=evs.filter(function(e){return !isLong(e)}).sort(sortEv),long=evs.filter(isLong).sort(sortEv);
+    root.appendChild(el("div",{class:"section-h"},[el("h2",{text:"Du "+fmtDay(w.fri)+" au "+fmtDay(w.sun)}),el("span",{class:"meta",text:evs.length+" idée"+(evs.length>1?"s":"")})]));
+    if(!evs.length){root.appendChild(el("div",{class:"empty",text:"Rien de recensé pour ce week-end avec ces filtres. La mise à jour de mardi en ajoutera peut-être."}));return}
+    if(short.length){root.appendChild(el("h3",{class:"group",text:"Ce week-end"}));var l1=el("div",{class:"list"});short.forEach(function(ev){l1.appendChild(card(ev,w.sat))});root.appendChild(l1)}
+    if(long.length){root.appendChild(el("h3",{class:"group",text:"En ce moment (sur plusieurs semaines)"}));var l2=el("div",{class:"list"});long.forEach(function(ev){l2.appendChild(card(ev,w.sat))});root.appendChild(l2)}
+  }
+  function viewAuto(root){
+    var evs=state.events.filter(function(e){return e.category==="auto"&&upcoming(e)}).sort(sortEv);
+    root.appendChild(el("div",{class:"section-h"},[el("h2",{text:"Rallyes, courses de côte, rassemblements"}),el("span",{class:"meta",text:evs.length+" à venir"})]));
+    if(!evs.length){root.appendChild(el("div",{class:"empty",text:"Aucun événement auto recensé pour le moment."}));return}
+    var by={};
+    evs.forEach(function(e){var d=parseD(e.start<todayIso()?todayIso():e.start);var k=d.getFullYear()+"-"+pad(d.getMonth()+1);(by[k]=by[k]||[]).push(e)});
+    Object.keys(by).sort().forEach(function(k){var p=k.split("-");root.appendChild(el("h3",{class:"group",text:MONTHS_FULL[+p[1]-1]+" "+p[0]}));var l=el("div",{class:"list"});by[k].forEach(function(ev){l.appendChild(card(ev,null))});root.appendChild(l)});
+  }
+  function viewFav(root){
+    var evs=state.events.filter(function(e){return fav(e.id).tente&&upcoming(e)}).sort(sortEv);
+    var go=evs.filter(function(e){return fav(e.id).go}),maybe=evs.filter(function(e){return !fav(e.id).go});
+    root.appendChild(el("div",{class:"section-h"},[el("h2",{text:"Nos envies"}),el("span",{class:"meta",text:go.length+" prévue"+(go.length>1?"s":"")+" · "+maybe.length+" à voir"})]));
+    if(!evs.length){root.appendChild(el("div",{class:"empty",text:"Touchez le cœur sur un événement pour le garder ici. Vous voyez tous les deux la même liste."}));return}
+    if(go.length){root.appendChild(el("h3",{class:"group",text:"On y va"}));var l=el("div",{class:"list"});go.forEach(function(ev){l.appendChild(card(ev,null))});root.appendChild(l)}
+    if(maybe.length){root.appendChild(el("h3",{class:"group",text:"Ça nous tente"}));var m=el("div",{class:"list"});maybe.forEach(function(ev){m.appendChild(card(ev,null))});root.appendChild(m)}
+  }
+
+  // ---------- lieux ----------
+  function placeForm(existing){
+    var p=existing||{};
+    function field(id,label,input){return el("label",{for:id},[label,input])}
+    var kindSel=el("select",{id:"pl-kind"});Object.keys(KINDS).forEach(function(k){kindSel.appendChild(el("option",{value:k,selected:(p.kind||"resto")===k,text:KINDS[k]}))});
+    var depSel=el("select",{id:"pl-dept"});[["06","06"],["83","83"],["MC","Monaco"],["autre","Ailleurs"]].forEach(function(o){depSel.appendChild(el("option",{value:o[0],selected:(p.dept||"06")===o[0],text:o[1]}))});
+    var err=el("div",{class:"err"});
+    var form=el("form",{class:"stack",onsubmit:function(e){
+      e.preventDefault();
+      var data={name:document.getElementById("pl-name").value.trim(),city:document.getElementById("pl-city").value.trim()||null,dept:depSel.value,kind:kindSel.value,notes:document.getElementById("pl-notes").value.trim()||null,url:document.getElementById("pl-url").value.trim()||null};
+      if(!data.name){err.textContent="Donnez au moins un nom au lieu.";return}
+      if(data.url&&!/^https?:\/\//i.test(data.url))data.url="https://"+data.url;
+      var btn=form.querySelector("button[type=submit]");btn.disabled=true;
+      var q=existing?sb.from("places").update(data).eq("id",existing.id).select():sb.from("places").insert(data).select();
+      q.then(function(r){
+        btn.disabled=false;
+        if(r.error){err.textContent="Pas enregistré : "+r.error.message;return}
+        var row=r.data&&r.data[0];
+        if(row){var i=-1;state.places.forEach(function(x,k){if(x.id===row.id)i=k});if(i<0)state.places.unshift(row);else state.places[i]=row}
+        state.placeForm=false;state.editId=null;state.placeFilter="todo";render();
+      });
+    }},[
+      field("pl-name","Nom du lieu",el("input",{id:"pl-name",type:"text",value:p.name||"",placeholder:"Ex. : Village d'Èze, La Petite Maison…",autocomplete:"off"})),
+      el("div",{class:"two"},[field("pl-city","Ville",el("input",{id:"pl-city",type:"text",value:p.city||"",autocomplete:"off"})),field("pl-dept","Département",depSel)]),
+      field("pl-kind","Type",kindSel),
+      field("pl-notes","Notes",el("textarea",{id:"pl-notes",placeholder:"Pourquoi on veut y aller, meilleure saison, à réserver…"},[p.notes||""])),
+      field("pl-url","Lien (site, Google Maps…)",el("input",{id:"pl-url",type:"url",value:p.url||"",inputmode:"url",autocomplete:"off"})),
+      err,
+      el("div",{class:"actions"},[el("button",{class:"btn primary",type:"submit",text:existing?"Enregistrer":"Ajouter le lieu"}),el("button",{class:"btn",type:"button",text:"Annuler",onclick:function(){state.placeForm=false;state.editId=null;render()}})])
+    ]);
+    return form;
+  }
+  function placeCard(p){
+    if(state.editId===p.id)return placeForm(p);
+    var kids=[
+      el("div",{class:"top"},[el("div",{},[el("div",{class:"when",text:p.done?"Fait"+(p.done_at?" le "+fmtShort(p.done_at):""):KINDS[p.kind]||"Lieu"}),el("div",{class:"title",text:p.name})])]),
+      el("div",{class:"where"},[el("span",{class:"badge"+(p.dept==="83"?" d83":p.dept==="MC"?" dmc":""),text:DEPTS[p.dept]||"—"}),p.done?el("span",{class:"badge type",text:KINDS[p.kind]||""}):null,el("span",{text:p.city||""})])
+    ];
+    if(p.notes)kids.push(el("p",{class:"desc",text:p.notes}));
+    var actions=el("div",{class:"actions"},[
+      el("button",{class:"btn go","aria-pressed":p.done?"true":"false",text:p.done?"✓ Fait":"Marquer comme fait",onclick:function(){
+        var patch={done:!p.done,done_at:!p.done?todayIso():null};
+        sb.from("places").update(patch).eq("id",p.id).select().then(function(r){if(r.error){toast("Pas enregistré : "+r.error.message);return}if(r.data&&r.data[0]){state.places=state.places.map(function(x){return x.id===p.id?r.data[0]:x})}render()})}}),
+      el("button",{class:"btn",text:"Modifier",onclick:function(){state.editId=p.id;state.placeForm=false;render()}}),
+      p.url?el("a",{class:"btn link",href:p.url,target:"_blank",rel:"noopener",text:"Lien"}):null,
+      el("a",{class:"btn link",href:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(p.name+(p.city?" "+p.city:"")),target:"_blank",rel:"noopener",text:"Carte"})
+    ]);
+    kids.push(actions);
+    if(state.confirmDel===p.id){
+      kids.push(el("div",{class:"calbox",style:"background:var(--race-soft)"},[el("p",{style:"color:var(--race)",text:"Supprimer ce lieu pour vous deux ?"}),
+        el("button",{class:"btn danger",text:"Oui, supprimer",onclick:function(){sb.from("places").delete().eq("id",p.id).then(function(r){if(r.error){toast("Suppression impossible : "+r.error.message);return}state.places=state.places.filter(function(x){return x.id!==p.id});state.confirmDel=null;render()})}}),
+        el("button",{class:"btn",text:"Non",onclick:function(){state.confirmDel=null;render()}})]));
+    }else{
+      actions.appendChild(el("button",{class:"btn link",style:"color:var(--race)",text:"Supprimer",onclick:function(){state.confirmDel=p.id;render()}}));
+    }
+    return el("article",{class:"card place"+(p.done?" done":"")},kids);
+  }
+  function viewPlaces(root){
+    var todo=state.places.filter(function(p){return !p.done}),done=state.places.filter(function(p){return p.done});
+    root.appendChild(el("div",{class:"section-h"},[el("h2",{text:"Nos lieux à faire"}),el("span",{class:"meta",text:todo.length+" à faire · "+done.length+" faits"})]));
+    if(state.placeForm){root.appendChild(placeForm(null))}
+    else{root.appendChild(el("button",{class:"btn primary",style:"width:100%;justify-content:center;padding:12px",text:"+ Ajouter un lieu",onclick:function(){state.placeForm=true;state.editId=null;render()}}))}
+    root.appendChild(el("div",{class:"filters",style:"padding-top:12px"},[chipRow([["todo","À faire ("+todo.length+")"],["done","Déjà faits ("+done.length+")"]],state.placeFilter,function(v){state.placeFilter=v;render()})]));
+    var list=state.placeFilter==="done"?done:todo;
+    if(!list.length){root.appendChild(el("div",{class:"empty",text:state.placeFilter==="done"?"Rien de coché pour l'instant.":"Ajoutez un resto, une plage, un village perché… tout ce que vous voulez faire un jour."}));return}
+    var l=el("div",{class:"list"});list.forEach(function(p){l.appendChild(placeCard(p))});root.appendChild(l);
+  }
+
+  // ---------- login ----------
+  function viewLogin(app){
+    var err=el("div",{class:"err"});
+    var mode={signup:false};
+    var box=el("div",{class:"login"});
+    function draw(){
+      box.innerHTML="";
+      box.appendChild(el("div",{class:"logo"},[el("span")]));
+      box.appendChild(el("h1",{},["Nos sorties ",el("span",{class:"dep",text:"06 · 83"})]));
+      box.appendChild(el("p",{text:mode.signup?"Première fois : créez le mot de passe du compte commun.":"Connectez-vous avec le compte commun."}));
+      var form=el("form",{class:"stack",onsubmit:function(e){
+        e.preventDefault();err.textContent="";
+        var email=document.getElementById("lg-email").value.trim().toLowerCase(),pw=document.getElementById("lg-pw").value;
+        if(pw.length<6){err.textContent="Le mot de passe doit faire au moins 6 caractères.";return}
+        var btn=form.querySelector("button[type=submit]");btn.disabled=true;
+        var p=mode.signup?sb.auth.signUp({email:email,password:pw}):sb.auth.signInWithPassword({email:email,password:pw});
+        p.then(function(r){btn.disabled=false;
+          if(r.error){err.textContent=r.error.message==="Invalid login credentials"?"E-mail ou mot de passe incorrect.":r.error.message;return}
+          if(mode.signup&&!r.data.session){err.style.color="var(--ok)";err.textContent="Compte créé. Ouvrez l'e-mail de confirmation reçu sur cette adresse, puis revenez vous connecter.";mode.signup=false;return}
+        });
+      }},[
+        el("label",{for:"lg-email"},["E-mail",el("input",{id:"lg-email",type:"email",value:SHARED_EMAIL,autocomplete:"username"})]),
+        el("label",{for:"lg-pw"},["Mot de passe",el("input",{id:"lg-pw",type:"password",autocomplete:mode.signup?"new-password":"current-password"})]),
+        err,
+        el("button",{class:"btn primary",type:"submit",style:"justify-content:center;padding:12px",text:mode.signup?"Créer le compte":"Se connecter"})
+      ]);
+      box.appendChild(form);
+      box.appendChild(el("button",{class:"btn link",type:"button",text:mode.signup?"J'ai déjà un mot de passe":"Première connexion ? Créer le compte",onclick:function(){mode.signup=!mode.signup;err.textContent="";draw()}}));
+    }
+    draw();app.appendChild(box);
+  }
+
+  // ---------- render ----------
+  var TABS=[["we","Week-ends","cal"],["auto","Auto","flag"],["fav","Envies","star"],["places","Lieux","pin"]];
+  function render(){
+    var app=document.getElementById("app");
+    var y=window.scrollY;
+    app.innerHTML="";
+    if(!sb){app.appendChild(el("div",{class:"wrap"},[el("div",{class:"notice warn",text:"L'appli n'est pas configurée (Supabase)."})]));return}
+    if(!state.user){viewLogin(app);return}
+    var wrap=el("div",{class:"wrap"});
+    var up=state.eventsAt?(function(){var d=new Date(state.eventsAt);return "Mis à jour le "+DAYS[d.getDay()]+" "+d.getDate()+" "+MONTHS[d.getMonth()]})():"";
+    wrap.appendChild(el("header",{},[
+      el("div",{},[el("h1",{},["Nos sorties ",el("span",{class:"dep",text:"06 · 83"})]),el("p",{class:"sub",text:up})]),
+      el("button",{class:"icon-btn",text:"Déconnexion",onclick:function(){sb.auth.signOut()}})
+    ]));
+    var root=el("main",{});
+    if(state.error)root.appendChild(el("div",{class:"notice warn",text:state.error}));
+    if(!state.loaded)root.appendChild(el("div",{class:"notice",text:"Chargement…"}));
+    else if(state.tab==="we")viewWeekends(root);
+    else if(state.tab==="auto")viewAuto(root);
+    else if(state.tab==="fav")viewFav(root);
+    else viewPlaces(root);
+    wrap.appendChild(root);
+    app.appendChild(wrap);
+    var nav=el("nav",{class:"tabs",role:"tablist"});
+    var counts={auto:state.events.filter(function(e){return e.category==="auto"&&upcoming(e)}).length,fav:state.events.filter(function(e){return fav(e.id).tente&&upcoming(e)}).length,places:state.places.filter(function(p){return !p.done}).length};
+    TABS.forEach(function(t){
+      var b=el("button",{class:"tab",role:"tab","data-tab":t[0],"aria-selected":state.tab===t[0]?"true":"false",onclick:function(){if(state.tab!==t[0]){state.tab=t[0];state.error=null;state.confirmDel=null;render();window.scrollTo(0,0)}}});
+      b.innerHTML=ICONS[t[2]];
+      b.appendChild(el("span",{text:t[1]+(counts[t[0]]?" ":"")},counts[t[0]]?[el("span",{class:"n",text:String(counts[t[0]])})]:[]));
+      nav.appendChild(b);
+    });
+    app.appendChild(nav);
+    if(state.toast)app.appendChild(el("div",{class:"toast",role:"status",text:state.toast}));
+    // keep scroll position on in-place re-render
+    if(y)window.scrollTo(0,y);
+  }
+
+  if(sb){
+    sb.auth.onAuthStateChange(function(evt,session){
+      var u=session&&session.user||null;
+      var was=state.user;
+      state.user=u;
+      if(u&&!was){loadEvents();loadShared()}
+      if(!u){state.favs={};state.places=[]}
+      render();
+    });
+    document.addEventListener("visibilitychange",function(){if(!document.hidden&&state.user)loadEvents()});
+  }
+  render();
+})();
+</script>
+</body>
+</html>
