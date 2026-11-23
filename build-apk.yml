@@ -42,14 +42,32 @@ jobs:
           sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|; s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|; s|__EVENTS_URL__|${EVENTS_URL}|" www/config.js
           if grep -qE "__(SUPABASE|EVENTS)" www/config.js; then echo "Il manque le secret SUPABASE_URL ou SUPABASE_ANON_KEY"; exit 1; fi
       - run: npx cap sync android
+      - name: Clé de signature (toujours la même)
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          if [ ${#KEYSTORE_PASSWORD} -lt 8 ]; then echo "Ajoutez le secret KEYSTORE_PASSWORD (8 caractères minimum)"; exit 1; fi
+          if [ ! -f android/app/release.keystore.enc ]; then
+            keytool -genkeypair -keystore android/app/release.keystore -alias nossorties -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" -dname "CN=Nos sorties, C=FR"
+            openssl enc -aes-256-cbc -pbkdf2 -salt -in android/app/release.keystore -out android/app/release.keystore.enc -pass env:KEYSTORE_PASSWORD
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add android/app/release.keystore.enc
+            git commit -m "Clé de signature chiffrée"
+            git push
+          else
+            openssl enc -d -aes-256-cbc -pbkdf2 -in android/app/release.keystore.enc -out android/app/release.keystore -pass env:KEYSTORE_PASSWORD
+          fi
       - name: Compilation
         working-directory: android
         env:
           VERSION_CODE: ${{ github.run_number }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
-          cp app/build/outputs/apk/debug/app-debug.apk ../NosSorties.apk
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk ../NosSorties.apk
       - name: Publier
         uses: softprops/action-gh-release@v2
         with:
