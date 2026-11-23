@@ -14,16 +14,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Déballer le zip s'il a été déposé tel quel
+        run: |
+          if [ -f nos-sorties.zip ]; then
+            unzip -o -q nos-sorties.zip -x '.github/*'
+            git rm -q --cached nos-sorties.zip && rm nos-sorties.zip
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "Fichiers du projet déballés depuis le zip"
+            git push
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
       - run: npm ci
-      - run: npx cap sync android
       - name: Réglages de l'appli
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -31,7 +40,8 @@ jobs:
         run: |
           EVENTS_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/data/events.json"
           sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|; s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|; s|__EVENTS_URL__|${EVENTS_URL}|" www/config.js
-          if grep -q "__" www/config.js; then echo "Il manque le secret SUPABASE_URL ou SUPABASE_ANON_KEY"; exit 1; fi
+          if grep -qE "__(SUPABASE|EVENTS)" www/config.js; then echo "Il manque le secret SUPABASE_URL ou SUPABASE_ANON_KEY"; exit 1; fi
+      - run: npx cap sync android
       - name: Compilation
         working-directory: android
         env:
