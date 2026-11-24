@@ -28,6 +28,9 @@ create table if not exists public.places (
   created_at timestamptz not null default now()
 );
 
+-- Droits d'accès pour l'appli (sinon : « permission denied for table »)
+grant select, insert, update, delete on table public.favs, public.places to authenticated;
+
 alter table public.favs   enable row level security;
 alter table public.places enable row level security;
 
