@@ -28,7 +28,8 @@ Deno.serve(async(req)=>{
  let processed=0,ignored=0;const errors:string[]=[];
  for(const src of sources){try{
   const res=await fetch(src.url,{headers:{"User-Agent":"NosSorties/1.0 event feed reader"}});if(!res.ok)throw new Error("HTTP "+res.status);
-  for(const item of parseItems(await res.text())){const dept=area(item.title+" "+item.description);if(!dept||!item.title||!item.url){ignored++;continue;}\n   const d=dateValue(item.title+" "+item.description);if(!d||d<new Date().toISOString().slice(0,10)){ignored++;continue;}
+  for(const item of parseItems(await res.text())){const dept=area(item.title+" "+item.description);if(!dept||!item.title||!item.url){ignored++;continue;}
+   const d=dateValue(item.title+" "+item.description);if(!d||d<new Date().toISOString().slice(0,10)){ignored++;continue;}
    const row={id:"rss-"+btoa(item.url).replace(/[^a-z0-9]/gi,"").slice(0,40),title:item.title,start_date:d,end_date:d,dept,category:/rally|auto|voiture|wrc/i.test(item.title)?"auto":"autre",description:item.description.slice(0,1200),url:item.url,source_name:src.name,source_url:src.url,last_seen_at:new Date().toISOString()};
    const {error}=await supabase.from("events_auto").upsert(row,{onConflict:"url"});if(error)throw error;processed++;
   }
