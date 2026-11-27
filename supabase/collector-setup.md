@@ -25,7 +25,7 @@ Le déploiement désactive la vérification JWT côté passerelle : le GET est p
 ## 4. Planifier la collecte
 Configurer une tâche Supabase Cron (ou un service de planification gratuit) pour appeler le POST toutes les 6 heures, en envoyant `x-collector-token`. Le token doit être conservé dans les secrets du scheduler. Ne pas déclencher le POST sans token.
 
-## 5. Limites
+## 5. Contrôle après déploiement\n\nAprès un POST de collecte, vérifier le JSON de retour : `ok`, `processed`, `ignored` et `errors`. En cas d'échec d'une ou plusieurs sources, la fonction renvoie désormais un statut HTTP 502 avec le détail des erreurs, au lieu de signaler un succès HTTP trompeur. Les liens RSS Atom (liens en texte et attribut `href`) sont pris en charge; l'URL sert aussi de clé stable d'événement.\n\n## 6. Limites
 - Sept requêtes RSS Google News ciblent désormais les agendas 06, 83, Monaco, rallyes, festivals/concerts, foires/marchés et événements sportifs. Ce sont des requêtes RSS de découverte, pas des sources officielles, et elles peuvent retourner des articles hors sujet.\n- RSS Google News ne fournit pas nécessairement les dates précises des événements ni leur ville dans le titre/description.
 - Le filtrage actuel par liste de villes est rudimentaire et peut attribuer une mauvaise zone ou ignorer un événement.
 - La collecte n'est pas exhaustive; compléter progressivement avec des sources officielles d'organisateurs, offices de tourisme, salles et rallyes.
