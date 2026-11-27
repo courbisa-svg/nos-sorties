@@ -8,7 +8,7 @@ Exécuter le SQL de `supabase/migrations/20261126_automated_events.sql` dans Sup
 ## 2. Déployer la fonction
 Depuis le dépôt, avec Supabase CLI:
 ```sh
-supabase functions deploy event-collector
+supabase functions deploy event-collector --no-verify-jwt
 ```
 Définir les secrets Edge Function (jamais dans Git):
 - `SUPABASE_URL`
@@ -20,7 +20,7 @@ La fonction expose:
 - `GET /functions/v1/event-collector`: retourne un JSON `{events, updatedAt}` destiné à l'application, avec les événements à date future/aujourd'hui et ayant une date connue.
 - `POST /functions/v1/event-collector`: déclenche la collecte RSS, avec l'en-tête `x-collector-token` correspondant au secret `COLLECTOR_TOKEN`.
 
-Le GET ne nécessite pas le token de collecte. Ne jamais exposer la clé service-role dans l'application. L'URL du GET peut être configurée comme `EVENTS_URL` dans la configuration Android, après déploiement et test.
+Le déploiement désactive la vérification JWT côté passerelle : le GET est public, et le POST reste protégé par `COLLECTOR_TOKEN` dans le code. Ne jamais exposer la clé service-role dans l'application. L'URL du GET peut être configurée comme `EVENTS_URL` dans la configuration Android, après déploiement et test.
 
 ## 4. Planifier la collecte
 Configurer une tâche Supabase Cron (ou un service de planification gratuit) pour appeler le POST toutes les 6 heures, en envoyant `x-collector-token`. Le token doit être conservé dans les secrets du scheduler. Ne pas déclencher le POST sans token.
