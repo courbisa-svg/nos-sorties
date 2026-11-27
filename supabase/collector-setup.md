@@ -29,6 +29,6 @@ Configurer une tâche Supabase Cron (ou un service de planification gratuit) pou
 - RSS Google News ne fournit pas nécessairement les dates précises des événements ni leur ville dans le titre/description.
 - Le filtrage actuel par liste de villes est rudimentaire et peut attribuer une mauvaise zone ou ignorer un événement.
 - La collecte n'est pas exhaustive; compléter progressivement avec des sources officielles d'organisateurs, offices de tourisme, salles et rallyes.
-- Les événements dont la date est inconnue sont exclus du flux public pour éviter les éléments incomplets.
+- Les événements dont la date est inconnue sont exclus du flux public pour éviter les éléments incomplets. Le collecteur recherche une date explicite dans le titre ou la description (formats français courants) et n'utilise plus la date de publication de l'article comme date de l'événement, ce qui évite une source majeure de faux événements.
 - Les résultats ne sont pas vérifiés auprès des organisateurs. Vérifier dates, lieux et liens avant publication.
 - La migration, le déploiement et l'intégration dans l'application ne sont pas encore réalisés.
