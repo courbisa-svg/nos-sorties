@@ -39,8 +39,9 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          EVENTS_URL_SECRET: ${{ secrets.EVENTS_URL }}
         run: |
-          EVENTS_URL="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/data/events.json"
+          EVENTS_URL="${EVENTS_URL_SECRET:-https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/data/events.json}"
           sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|; s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|; s|__EVENTS_URL__|${EVENTS_URL}|" www/config.js
           if grep -qE "__(SUPABASE|EVENTS)" www/config.js; then echo "Il manque le secret SUPABASE_URL ou SUPABASE_ANON_KEY"; exit 1; fi
       - run: npx cap sync android
