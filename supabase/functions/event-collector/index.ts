@@ -33,7 +33,8 @@ Deno.serve(async(req)=>{
  for(const src of sources){try{
   const res=await fetch(src.url,{headers:{"User-Agent":"NosSorties/1.0 event feed reader"}});if(!res.ok)throw new Error("HTTP "+res.status);
   for(const item of parseItems(await res.text())){const combined=item.title+" "+item.description;const dept=area(combined);const city=cityValue(combined);if(!dept||!city||!item.title||!item.url){ignored++;continue;}
-   const d=dateValue(item.title+" "+item.description);if(!d||d<new Date().toISOString().slice(0,10)){ignored++;continue;}\n   let eventUrl=item.url;try{const parsed=new URL(eventUrl);if(parsed.protocol!=="http:"&&parsed.protocol!=="https:"){ignored++;continue;}eventUrl=parsed.href;}catch{ignored++;continue;}
+   const d=dateValue(item.title+" "+item.description);if(!d||d<new Date().toISOString().slice(0,10)){ignored++;continue;}
+   let eventUrl=item.url;try{const parsed=new URL(eventUrl);if(parsed.protocol!=="http:"&&parsed.protocol!=="https:"){ignored++;continue;}eventUrl=parsed.href;}catch{ignored++;continue;}
    const row={id:"rss-"+btoa(eventUrl).replace(/[^a-z0-9]/gi,"").slice(0,40),title:item.title,start_date:d,end_date:d,city,dept,category:/rally|auto|voiture|wrc|course automobile|motorsport|rallye/i.test(combined)?"auto":/concert|musique|spectacle musical/i.test(combined)?"concert":/festival/i.test(combined)?"fete":/trail|course a pied|sport|marathon|cycl|randonnee/i.test(combined)?"sport":/brocante|vide.grenier/i.test(combined)?"brocante":/foire|salon|marche/i.test(combined)?"marche":/theatre|exposition|musee|culture/i.test(combined)?"culture":"autre",description:item.description.slice(0,1200),url:eventUrl,source_name:src.name,source_url:src.url,last_seen_at:new Date().toISOString()};
    const {error}=await supabase.from("events_auto").upsert(row,{onConflict:"url"});if(error)throw error;processed++;
   }
