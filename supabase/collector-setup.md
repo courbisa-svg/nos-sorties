@@ -26,7 +26,7 @@ Le déploiement désactive la vérification JWT côté passerelle : le GET est p
 Configurer une tâche Supabase Cron (ou un service de planification gratuit) pour appeler le POST toutes les 6 heures, en envoyant `x-collector-token`. Le token doit être conservé dans les secrets du scheduler. Ne pas déclencher le POST sans token.
 
 ## 5. Limites
-- Six flux Google News ciblent désormais les agendas 06, 83, Monaco, rallyes, festivals/concerts, foires/marchés et événements sportifs. Ce sont des requêtes RSS de découverte, pas des sources officielles, et elles peuvent retourner des articles hors sujet.\n- RSS Google News ne fournit pas nécessairement les dates précises des événements ni leur ville dans le titre/description.
+- Sept requêtes RSS Google News ciblent désormais les agendas 06, 83, Monaco, rallyes, festivals/concerts, foires/marchés et événements sportifs. Ce sont des requêtes RSS de découverte, pas des sources officielles, et elles peuvent retourner des articles hors sujet.\n- RSS Google News ne fournit pas nécessairement les dates précises des événements ni leur ville dans le titre/description.
 - Le filtrage actuel par liste de villes est rudimentaire et peut attribuer une mauvaise zone ou ignorer un événement.
 - La collecte n'est pas exhaustive; compléter progressivement avec des sources officielles d'organisateurs, offices de tourisme, salles et rallyes.
 - Les événements dont la date est inconnue sont exclus du flux public pour éviter les éléments incomplets. Le collecteur recherche une date explicite dans le titre ou la description (formats français courants) et n'utilise plus la date de publication de l'article comme date de l'événement, ce qui évite une source majeure de faux événements.
