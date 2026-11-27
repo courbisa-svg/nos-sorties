@@ -31,7 +31,7 @@ Deno.serve(async(req)=>{
  const token=Deno.env.get("COLLECTOR_TOKEN");if(!token||req.headers.get("x-collector-token")!==token)return new Response("Unauthorized",{status:401});
  let processed=0,ignored=0;const errors:string[]=[];
  for(const src of sources){try{
-  const res=await fetch(src.url,{headers:{"User-Agent":"NosSorties/1.0 event feed reader"}});if(!res.ok)throw new Error("HTTP "+res.status);
+  const res=await fetch(src.url,{headers:{"User-Agent":"NosSorties/1.0 event feed reader"},signal:AbortSignal.timeout(12000)});if(!res.ok)throw new Error("HTTP "+res.status);
   for(const item of parseItems(await res.text())){const combined=item.title+" "+item.description;const dept=area(combined);const city=cityValue(combined);if(!dept||!city||!item.title||!item.url){ignored++;continue;}
    const d=dateValue(item.title+" "+item.description);if(!d||d<new Date().toISOString().slice(0,10)){ignored++;continue;}
    let eventUrl=item.url;try{const parsed=new URL(eventUrl);if(parsed.protocol!=="http:"&&parsed.protocol!=="https:"){ignored++;continue;}eventUrl=parsed.href;}catch{ignored++;continue;}
