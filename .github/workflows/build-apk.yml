@@ -2,8 +2,8 @@ name: Construire l'APK
 
 on:
   push:
-    branches: [main]
-    paths: ["www/**", "android/**", "capacitor.config.json", "package.json", "package-lock.json", ".github/workflows/build-apk.yml"]
+    branches: [main, feature/automated-event-collector]
+    paths: ["www/**", "android/**", "data/**", "capacitor.config.json", "package.json", "package-lock.json", ".github/workflows/build-apk.yml"]
   workflow_dispatch:
 
 permissions:
@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - name: Déballer le zip s'il a été déposé tel quel
         run: |
           if [ -f nos-sorties.zip ]; then
@@ -37,8 +39,9 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          EVENTS_URL_SECRET: ${{ secrets.EVENTS_URL }}
         run: |
-          EVENTS_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/data/events.json"
+          EVENTS_URL="${EVENTS_URL_SECRET:-https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/data/events.json}"
           sed -i "s|__SUPABASE_URL__|${SUPABASE_URL}|; s|__SUPABASE_ANON_KEY__|${SUPABASE_ANON_KEY}|; s|__EVENTS_URL__|${EVENTS_URL}|" www/config.js
           if grep -qE "__(SUPABASE|EVENTS)" www/config.js; then echo "Il manque le secret SUPABASE_URL ou SUPABASE_ANON_KEY"; exit 1; fi
       - run: npx cap sync android
@@ -68,7 +71,15 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
           cp app/build/outputs/apk/release/app-release.apk ../NosSorties.apk
-      - name: Publier
+      - name: Archiver l'APK de développement
+        if: github.ref != 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: NosSorties-dev-${{ github.run_number }}
+          path: NosSorties.apk
+          retention-days: 30
+      - name: Publier la version officielle
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.${{ github.run_number }}
