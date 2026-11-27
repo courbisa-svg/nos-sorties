@@ -13,9 +13,15 @@ function parseItems(xml:string){const blocks=xml.match(/<(item|entry)\b[\s\S]*?<
 function area(text:string){const t=text.toLowerCase();const found=places.find(p=>t.includes(p.toLowerCase()));if(!found)return null;return found==="monaco"||found==="monte-carlo"?"MC":(["frejus","fréjus","toulon","hyères","hyeres","brignoles","draguignan","bandol","sanary","six-fours","cavalaire","sainte-maxime","le lavandou","bormes","cuers","pierrefeu","la garde","le luc","vidauban","lorgues","flassans","puget"].includes(found)?"83":"06");}
 function dateValue(s:string){if(!s)return null;const d=new Date(s);return isNaN(d.getTime())?null:d.toISOString().slice(0,10);}
 Deno.serve(async(req)=>{
- if(req.method!=="POST")return new Response("POST only",{status:405});
- const token=Deno.env.get("COLLECTOR_TOKEN");if(!token||req.headers.get("x-collector-token")!==token)return new Response("Unauthorized",{status:401});
  const supabase=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+ if(req.method==="GET"){
+  const {data,error}=await supabase.from("events_auto").select("id,title,start_date,end_date,city,dept,category,description,url,source_name").not("start_date","is",null).gte("end_date",new Date().toISOString().slice(0,10)).order("start_date",{ascending:true}).limit(500);
+  if(error)return new Response(JSON.stringify({error:error.message}),{status:500,headers:{"Content-Type":"application/json"}});
+  const events=(data||[]).map(e=>({id:e.id,title:e.title,start:e.start_date,end:e.end_date||e.start_date,city:e.city||"",dept:e.dept||"",category:e.category||"autre",description:e.description||"",url:e.url,source:e.source_name||""}));
+  return new Response(JSON.stringify({events,updatedAt:new Date().toISOString()}),{headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*","Cache-Control":"no-store"}});
+ }
+ if(req.method!=="POST")return new Response("GET or POST only",{status:405});
+ const token=Deno.env.get("COLLECTOR_TOKEN");if(!token||req.headers.get("x-collector-token")!==token)return new Response("Unauthorized",{status:401});
  let processed=0,ignored=0;const errors:string[]=[];
  for(const src of sources){try{
   const res=await fetch(src.url,{headers:{"User-Agent":"NosSorties/1.0 event feed reader"}});if(!res.ok)throw new Error("HTTP "+res.status);
