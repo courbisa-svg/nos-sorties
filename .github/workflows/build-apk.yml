@@ -3,7 +3,7 @@ name: Construire l'APK
 on:
   push:
     branches: [main, feature/automated-event-collector]
-    paths: ["www/**", "android/**", "capacitor.config.json", "package.json", "package-lock.json", ".github/workflows/build-apk.yml"]
+    paths: ["www/**", "android/**", "data/**", "capacitor.config.json", "package.json", "package-lock.json", ".github/workflows/build-apk.yml"]
   workflow_dispatch:
 
 permissions:
